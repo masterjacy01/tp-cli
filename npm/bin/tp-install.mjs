@@ -20,12 +20,12 @@ if (mode !== "install") {
 }
 
 if (has("pipx")) {
-  const r = run("pipx", ["install", target]);
+  const r = run("pipx", ["install", "--force", target]);
   process.exit(r.status ?? 1);
 }
 
 if (has("python3", ["-m", "pip", "--version"])) {
-  const r = run("python3", ["-m", "pip", "install", target]);
+  const r = run("python3", ["-m", "pip", "install", "--upgrade", "--no-cache-dir", target]);
   if ((r.status ?? 1) !== 0) process.exit(r.status ?? 1);
   console.log("\nInstalled tp-cli.");
   console.log("Recommended first steps:");
@@ -38,7 +38,7 @@ if (has("python3", ["-m", "pip", "--version"])) {
 }
 
 if (has("python", ["-m", "pip", "--version"])) {
-  const r = run("python", ["-m", "pip", "install", target]);
+  const r = run("python", ["-m", "pip", "install", "--upgrade", "--no-cache-dir", target]);
   if ((r.status ?? 1) !== 0) process.exit(r.status ?? 1);
   console.log("\nInstalled tp-cli.");
   console.log("Recommended first steps:");

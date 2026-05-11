@@ -2,6 +2,7 @@ from datetime import date
 
 from typer.testing import CliRunner
 
+from tp_cli import __version__
 from tp_cli.cli import _fmt_distance, _fmt_duration, _fmt_num, _parse_date, _sport_name, app
 
 
@@ -9,7 +10,7 @@ def test_version_flag():
     result = CliRunner().invoke(app, ["--version"])
 
     assert result.exit_code == 0
-    assert "tp-cli 0.1.0" in result.output
+    assert f"tp-cli {__version__}" in result.output
 
 
 def test_parse_date_accepts_supported_formats():
@@ -38,4 +39,4 @@ def test_version_command():
     result = CliRunner().invoke(app, ["version"])
 
     assert result.exit_code == 0
-    assert "tp-cli 0.1.0" in result.output
+    assert f"tp-cli {__version__}" in result.output
