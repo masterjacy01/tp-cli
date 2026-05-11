@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3 - 2026-05-11
+
+- Fixed rich workout-detail parsing so `tp workout --full` shows actual time-in-zone durations and mean-max metrics from TrainingPeaks detail payloads.
+
 ## 0.1.2 - 2026-05-11
 
 - Enriched `tp workout --full` with data from the workout details endpoint (zone distributions and mean-max summaries when available).

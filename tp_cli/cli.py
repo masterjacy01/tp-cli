@@ -1026,15 +1026,14 @@ def _add_detail_rows(table: Table, details: dict) -> None:
 
 def _summarize_zones(zones: list[dict]) -> str:
     if isinstance(zones, dict):
-        parts = []
-        for k, v in zones.items():
-            try:
-                secs = int(v or 0)
-            except (TypeError, ValueError):
-                continue
-            if secs > 0:
-                parts.append(f"{k}:{_fmt_duration(secs)}")
-        return ", ".join(parts[:8]) if parts else "-"
+        if isinstance(zones.get("timeInZones"), list):
+            return _summarize_zones(zones["timeInZones"])
+        meta = []
+        if zones.get("threshold"):
+            meta.append(f"threshold:{_fmt_num(zones.get('threshold'))}")
+        if zones.get("maximum"):
+            meta.append(f"max:{_fmt_num(zones.get('maximum'))}")
+        return ", ".join(meta) if meta else "-"
 
     if not isinstance(zones, list):
         return "-"
@@ -1046,21 +1045,56 @@ def _summarize_zones(zones: list[dict]) -> str:
         secs = z.get("secondsInZone") or z.get("seconds") or 0
         if not secs:
             continue
-        parts.append(f"Z{idx}:{_fmt_duration(secs)}")
+        label = str(z.get("label") or f"Z{idx}").replace("Zone ", "Z")
+        parts.append(f"{label}:{_fmt_duration(secs)}")
     return ", ".join(parts[:8]) if parts else "-"
 
 
-def _summarize_mean_max(points: list[dict]) -> str:
+def _summarize_mean_max(points) -> str:
+    if isinstance(points, dict):
+        points = points.get("meanMaxes") or []
     if not isinstance(points, list):
         return "-"
     out = []
-    for p in points[:5]:
+    preferred = {
+        "MM5Seconds",
+        "MM30Seconds",
+        "MM1Minute",
+        "MM5Minutes",
+        "MM20Minutes",
+        "MM1Hour",
+        "MM90Minutes",
+        "MM3Hours",
+        "MM5Kilometer",
+        "MM10Kilometer",
+        "MMHalfMarathon",
+    }
+    selected = [p for p in points if isinstance(p, dict) and p.get("label") in preferred]
+    for p in (selected or points)[:8]:
         if not isinstance(p, dict):
             continue
-        x = p.get("x") or p.get("distance") or p.get("duration") or "?"
-        y = p.get("y") or p.get("value") or "?"
-        out.append(f"{x}:{y}")
+        value = p.get("y") or p.get("value")
+        if value is None:
+            continue
+        label = _fmt_mean_max_label(p.get("label") or p.get("x") or "?")
+        out.append(f"{label}:{_fmt_num(value, decimals=1)}")
     return ", ".join(out) if out else "-"
+
+
+def _fmt_mean_max_label(label) -> str:
+    text = str(label)
+    if text.startswith("MM"):
+        text = text[2:]
+    return (
+        text.replace("Seconds", "s")
+        .replace("Second", "s")
+        .replace("Minutes", "m")
+        .replace("Minute", "m")
+        .replace("Hours", "h")
+        .replace("Hour", "h")
+        .replace("Kilometer", "km")
+        .replace("Meter", "m")
+    )
 
 
 if __name__ == "__main__":
