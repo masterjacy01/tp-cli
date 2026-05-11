@@ -1,11 +1,11 @@
 {
   "name": "@masterjacy01/tp-cli",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "npx installer wrapper for tp-cli (unofficial TrainingPeaks CLI).",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "tp-install": "./bin/tp-install.mjs"
+    "tp-cli": "bin/tp-install.mjs"
   },
   "scripts": {
     "test": "node --test"

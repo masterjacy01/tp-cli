@@ -1,0 +1,13 @@
+{
+  "name": "tp-cli-install",
+  "version": "0.1.4",
+  "description": "One-command npx installer shim for tp-cli.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "tp-cli-install": "bin/tp-cli-install.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

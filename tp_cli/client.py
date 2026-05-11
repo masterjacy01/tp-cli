@@ -151,6 +151,39 @@ class TPClient:
         result = self.get(f"/fitness/v6/athletes/{aid}/workouts/{workout_id}")
         return result if isinstance(result, dict) else (result[0] if result else {})
 
+    def get_workout_details(self, workout_id: str) -> dict:
+        aid = self.get_athlete_id()
+        result = self.get(f"/fitness/v6/athletes/{aid}/workouts/{workout_id}/details")
+        return result if isinstance(result, dict) else {}
+
+    def sniff_workout_endpoints(self, workout_id: str) -> list[dict]:
+        """Probe likely workout-detail endpoints and report which ones return data."""
+        aid = self.get_athlete_id()
+        paths = [
+            f"/fitness/v6/athletes/{aid}/workouts/{workout_id}",
+            f"/fitness/v7/athletes/{aid}/workouts/{workout_id}",
+            f"/fitness/v6/athletes/{aid}/workouts/{workout_id}/details",
+            f"/fitness/v6/athletes/{aid}/workouts/{workout_id}/metrics",
+            f"/fitness/v6/athletes/{aid}/workouts/{workout_id}/laps",
+            f"/fitness/v6/athletes/{aid}/workouts/{workout_id}/samples",
+            f"/fitness/v6/athletes/{aid}/workouts/{workout_id}/files",
+            f"/fitness/v6/athletes/{aid}/workouts/{workout_id}/devicefiles",
+            f"/fitnessfile/v1/athletes/{aid}/workouts/{workout_id}",
+            f"/fitnessfile/v2/athletes/{aid}/workouts/{workout_id}",
+            f"/personalrecord/v2/athletes/{aid}/workouts/{workout_id}",
+        ]
+        findings = []
+        for path in paths:
+            try:
+                data = self.get(path)
+                keys = list(data.keys()) if isinstance(data, dict) else []
+                findings.append(
+                    {"path": path, "status": 200, "keys": keys[:20], "shape": type(data).__name__}
+                )
+            except Exception as e:
+                findings.append({"path": path, "status": "error", "error": str(e)})
+        return findings
+
     def create_workout(
         self,
         sport: str,

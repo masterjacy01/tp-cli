@@ -26,6 +26,12 @@ Printing Press-style one-command installer wrapper:
 npx -y @masterjacy01/tp-cli install git+https://github.com/masterjacy01/tp-cli.git
 ```
 
+Most reliable one-liner (shim package):
+
+```bash
+npx -y tp-cli-install install git+https://github.com/masterjacy01/tp-cli.git
+```
+
 Verify:
 
 ```bash

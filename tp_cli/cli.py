@@ -344,6 +344,7 @@ def workout(
     with console.status(f"Fetching workout {workout_id}..."):
         try:
             w = client.get_workout(workout_id)
+            details = client.get_workout_details(workout_id) if full else {}
             pr_list = client.get_workout_prs(workout_id) if prs else []
         except AuthError as e:
             _auth_error(e)
@@ -380,6 +381,7 @@ def workout(
         row("Max HR", _fmt_num(w.get("maxHeartRate"), suffix=" bpm"))
         row("Elevation", _fmt_num(w.get("totalElevationGain"), suffix=" m"))
         row("Calories", _fmt_num(w.get("calories"), suffix=" kcal"))
+        _add_detail_rows(table, details)
 
     for label, key in [("Description", "description"), ("Coach notes", "coachComments"), ("Your notes", "athleteComments")]:
         val = (w.get(key) or "").strip()
@@ -398,6 +400,33 @@ def workout(
 
     if not full:
         console.print("[dim]Tip: use --full for extended workout analysis fields.[/]")
+
+
+@app.command("workout-sniff")
+def workout_sniff(
+    workout_id: str = typer.Argument(..., help="Workout ID"),
+):
+    """Probe likely TrainingPeaks workout-detail endpoints for this workout ID."""
+    client = TPClient()
+    with console.status(f"Sniffing endpoint variants for workout {workout_id}..."):
+        try:
+            findings = client.sniff_workout_endpoints(workout_id)
+        except AuthError as e:
+            _auth_error(e)
+
+    table = Table(title=f"Workout Endpoint Sniff  {workout_id}")
+    table.add_column("Path", style="cyan")
+    table.add_column("Status", style="bold")
+    table.add_column("Shape", style="dim")
+    table.add_column("Keys / Error", style="dim")
+
+    for f in findings:
+        status = str(f.get("status"))
+        shape = str(f.get("shape", "-"))
+        detail = ", ".join(f.get("keys", [])) if f.get("keys") else f.get("error", "-")
+        table.add_row(f["path"], status, shape, detail[:180])
+
+    console.print(table)
 
 
 # ---------------------------------------------------------------------------
@@ -996,6 +1025,69 @@ def _tsb_label(tsb) -> str:
     if tsb > -10: return "Tired"
     if tsb > -25: return "Very Tired"
     return "Exhausted"
+
+
+def _add_detail_rows(table: Table, details: dict) -> None:
+    if not details:
+        return
+    hr = details.get("timeInHeartRateZones") or []
+    pw = details.get("timeInPowerZones") or []
+    sp = details.get("timeInSpeedZones") or []
+    if hr:
+        table.add_row("HR zones", _summarize_zones(hr))
+    if pw:
+        table.add_row("Power zones", _summarize_zones(pw))
+    if sp:
+        table.add_row("Speed zones", _summarize_zones(sp))
+
+    mm_hr = details.get("meanMaxHeartRates") or []
+    mm_pw = details.get("meanMaxPowers") or []
+    mm_sp = details.get("meanMaxSpeedsByDistance") or details.get("meanMaxSpeeds") or []
+    if mm_hr:
+        table.add_row("Mean-max HR", _summarize_mean_max(mm_hr))
+    if mm_pw:
+        table.add_row("Mean-max Power", _summarize_mean_max(mm_pw))
+    if mm_sp:
+        table.add_row("Mean-max Speed", _summarize_mean_max(mm_sp))
+
+
+def _summarize_zones(zones: list[dict]) -> str:
+    if isinstance(zones, dict):
+        parts = []
+        for k, v in zones.items():
+            try:
+                secs = int(v or 0)
+            except (TypeError, ValueError):
+                continue
+            if secs > 0:
+                parts.append(f"{k}:{_fmt_duration(secs)}")
+        return ", ".join(parts[:8]) if parts else "-"
+
+    if not isinstance(zones, list):
+        return "-"
+
+    parts = []
+    for idx, z in enumerate(zones, start=1):
+        if not isinstance(z, dict):
+            continue
+        secs = z.get("secondsInZone") or z.get("seconds") or 0
+        if not secs:
+            continue
+        parts.append(f"Z{idx}:{_fmt_duration(secs)}")
+    return ", ".join(parts[:8]) if parts else "-"
+
+
+def _summarize_mean_max(points: list[dict]) -> str:
+    if not isinstance(points, list):
+        return "-"
+    out = []
+    for p in points[:5]:
+        if not isinstance(p, dict):
+            continue
+        x = p.get("x") or p.get("distance") or p.get("duration") or "?"
+        y = p.get("y") or p.get("value") or "?"
+        out.append(f"{x}:{y}")
+    return ", ".join(out) if out else "-"
 
 
 if __name__ == "__main__":
