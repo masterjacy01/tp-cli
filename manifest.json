@@ -1,0 +1,31 @@
+{
+  "name": "tp-cli",
+  "binary": "tp",
+  "description": "Unofficial command-line toolkit for TrainingPeaks.",
+  "license": "MIT",
+  "language": "python",
+  "package_manager": "pip",
+  "entrypoint": "tp_cli.cli:app",
+  "auth": {
+    "type": "trainingpeaks_session_cookie",
+    "storage": "~/.config/trainingpeaks-cli/tokens.json",
+    "setup_commands": [
+      "tp auth setup --browser chrome",
+      "tp auth setup"
+    ]
+  },
+  "capabilities": [
+    "profile",
+    "workout_list",
+    "workout_detail",
+    "planned_workout_create",
+    "planned_workout_update",
+    "planned_workout_delete",
+    "zwo_import",
+    "fitness_metrics",
+    "personal_records",
+    "exercise_catalog_search",
+    "structured_strength_workout_create"
+  ],
+  "unofficial": true
+}
