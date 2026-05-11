@@ -70,6 +70,9 @@ tp workouts --start 2026-05-01 --end 2026-05-11 --sport bike
 # Workout detail, including PRs from that workout
 tp workout 123456789 --prs
 
+# Full analysis fields for a workout (power/HR/elevation/calories split)
+tp workout 123456789 --full
+
 # Fitness trend
 tp fitness --days 42
 
@@ -150,6 +153,7 @@ Workouts and profile:
 - `tp doctor` - run auth and API connectivity checks
 - `tp workouts` - list workouts in a date range
 - `tp workout <id>` - show one workout
+- `tp workout <id> --full` - show full analysis fields instead of compact defaults
 - `tp create` - create a planned workout
 - `tp update <id>` - update planned workout fields
 - `tp delete <id>` - delete a planned workout
@@ -175,6 +179,8 @@ The current CLI is optimized for clear terminal use and deterministic flags. It 
 - a `doctor` command for auth and endpoint checks
 - typed exit codes for auth, not found, rate limited, and API errors
 - a companion skill or MCP server for agent workflows
+
+For token-efficient workflows, `tp workout <id>` now defaults to high-signal fields only (date, sport, status, duration, distance, TSS, IF). Use `--full` when you need deeper per-workout analysis (planned vs actual splits, power, heart rate, elevation, calories).
 
 ## Development
 

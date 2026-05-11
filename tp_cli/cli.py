@@ -327,8 +327,13 @@ def workouts(
 def workout(
     workout_id: str = typer.Argument(..., help="Workout ID"),
     prs: bool = typer.Option(False, "--prs", "-p", help="Also show PRs set in this workout"),
+    full: bool = typer.Option(
+        False,
+        "--full",
+        help="Show extended analysis fields. Default view focuses on high-signal metrics.",
+    ),
 ):
-    """Show detailed info for a single workout."""
+    """Show workout details. Default output is compact; use --full for deeper analysis."""
     client = TPClient()
     with console.status(f"Fetching workout {workout_id}..."):
         try:
@@ -351,19 +356,24 @@ def workout(
     row("Date", (w.get("workoutDay") or "")[:10])
     row("Sport", _sport_name(w.get("workoutTypeValueId")))
     row("Status", _workout_status(w).capitalize())
-    row("Duration (planned)", _fmt_duration(_hours_to_seconds(w.get("totalTimePlanned"))))
-    row("Duration (actual)", _fmt_duration(_hours_to_seconds(w.get("totalTime"))))
-    row("Distance (planned)", _fmt_distance(w.get("totalDistancePlanned") or 0))
-    row("Distance (actual)", _fmt_distance(w.get("totalDistance") or 0))
-    row("TSS (planned)", _fmt_num(w.get("tssPlanned")))
-    row("TSS (actual)", _fmt_num(w.get("tssActual")))
+    row("Duration", _fmt_duration(_hours_to_seconds(w.get("totalTime") or w.get("totalTimePlanned"))))
+    row("Distance", _fmt_distance(w.get("totalDistance") or w.get("totalDistancePlanned") or 0))
+    row("TSS", _fmt_num(w.get("tssActual") or w.get("tssPlanned")))
     row("IF", _fmt_num(w.get("intensityFactor") or w.get("ifPlanned"), decimals=2))
-    row("Avg Power", _fmt_num(w.get("averagePower"), suffix=" W"))
-    row("Norm Power", _fmt_num(w.get("normalizedPower"), suffix=" W"))
-    row("Avg HR", _fmt_num(w.get("averageHeartRate"), suffix=" bpm"))
-    row("Max HR", _fmt_num(w.get("maxHeartRate"), suffix=" bpm"))
-    row("Elevation", _fmt_num(w.get("totalElevationGain"), suffix=" m"))
-    row("Calories", _fmt_num(w.get("calories"), suffix=" kcal"))
+
+    if full:
+        row("Duration (planned)", _fmt_duration(_hours_to_seconds(w.get("totalTimePlanned"))))
+        row("Duration (actual)", _fmt_duration(_hours_to_seconds(w.get("totalTime"))))
+        row("Distance (planned)", _fmt_distance(w.get("totalDistancePlanned") or 0))
+        row("Distance (actual)", _fmt_distance(w.get("totalDistance") or 0))
+        row("TSS (planned)", _fmt_num(w.get("tssPlanned")))
+        row("TSS (actual)", _fmt_num(w.get("tssActual")))
+        row("Avg Power", _fmt_num(w.get("averagePower"), suffix=" W"))
+        row("Norm Power", _fmt_num(w.get("normalizedPower"), suffix=" W"))
+        row("Avg HR", _fmt_num(w.get("averageHeartRate"), suffix=" bpm"))
+        row("Max HR", _fmt_num(w.get("maxHeartRate"), suffix=" bpm"))
+        row("Elevation", _fmt_num(w.get("totalElevationGain"), suffix=" m"))
+        row("Calories", _fmt_num(w.get("calories"), suffix=" kcal"))
 
     for label, key in [("Description", "description"), ("Coach notes", "coachComments"), ("Your notes", "athleteComments")]:
         val = (w.get(key) or "").strip()
@@ -379,6 +389,9 @@ def workout(
                 f"  [cyan]{pr.get('type')}[/] ({pr.get('class')})  "
                 f"[bold]{pr.get('value')}[/]  [dim]rank #{pr.get('rank')}[/]"
             )
+
+    if not full:
+        console.print("[dim]Tip: use --full for extended workout analysis fields.[/]")
 
 
 # ---------------------------------------------------------------------------

@@ -25,3 +25,10 @@ def test_formatting_helpers():
     assert _fmt_num(42.4) == "42"
     assert _fmt_num(42.45, decimals=1) == "42.5"
     assert _sport_name(2) == "Bike"
+
+
+def test_workout_help_includes_full_flag():
+    result = CliRunner().invoke(app, ["workout", "--help"])
+
+    assert result.exit_code == 0
+    assert "--full" in result.output
