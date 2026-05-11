@@ -402,33 +402,6 @@ def workout(
         console.print("[dim]Tip: use --full for extended workout analysis fields.[/]")
 
 
-@app.command("workout-sniff")
-def workout_sniff(
-    workout_id: str = typer.Argument(..., help="Workout ID"),
-):
-    """Probe likely TrainingPeaks workout-detail endpoints for this workout ID."""
-    client = TPClient()
-    with console.status(f"Sniffing endpoint variants for workout {workout_id}..."):
-        try:
-            findings = client.sniff_workout_endpoints(workout_id)
-        except AuthError as e:
-            _auth_error(e)
-
-    table = Table(title=f"Workout Endpoint Sniff  {workout_id}")
-    table.add_column("Path", style="cyan")
-    table.add_column("Status", style="bold")
-    table.add_column("Shape", style="dim")
-    table.add_column("Keys / Error", style="dim")
-
-    for f in findings:
-        status = str(f.get("status"))
-        shape = str(f.get("shape", "-"))
-        detail = ", ".join(f.get("keys", [])) if f.get("keys") else f.get("error", "-")
-        table.add_row(f["path"], status, shape, detail[:180])
-
-    console.print(table)
-
-
 # ---------------------------------------------------------------------------
 # Create workout
 # ---------------------------------------------------------------------------
