@@ -20,6 +20,12 @@ For isolated command-line installs:
 pipx install .
 ```
 
+Printing Press-style one-command installer wrapper:
+
+```bash
+npx -y @masterjacy01/tp-cli install git+https://github.com/masterjacy01/tp-cli.git
+```
+
 Verify:
 
 ```bash
