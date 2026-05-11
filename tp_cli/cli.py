@@ -206,6 +206,42 @@ def profile():
     console.print(Panel(table, title="[bold]TrainingPeaks Profile[/]", expand=False))
 
 
+@app.command("doctor")
+def doctor():
+    """Run local auth and API connectivity checks."""
+    status = check_status()
+    checks: list[tuple[str, str, str]] = []
+
+    if status.get("authenticated"):
+        checks.append(("auth", "pass", "credentials available"))
+    else:
+        checks.append(("auth", "fail", status.get("reason", "not authenticated")))
+
+    if status.get("authenticated"):
+        client = TPClient()
+        try:
+            user_data = client.get_user()
+            user = user_data.get("user", user_data) if isinstance(user_data, dict) else {}
+            ident = user.get("userName") or user.get("email") or "ok"
+            checks.append(("api", "pass", f"reachable as {ident}"))
+        except Exception as e:
+            checks.append(("api", "fail", str(e)))
+    else:
+        checks.append(("api", "skip", "skipped due to failed auth"))
+
+    table = Table(title="tp doctor")
+    table.add_column("Check", style="cyan")
+    table.add_column("Result")
+    table.add_column("Detail", style="dim")
+    for name, result, detail in checks:
+        result_color = {"pass": "green", "fail": "red", "skip": "yellow"}.get(result, "white")
+        table.add_row(name, f"[{result_color}]{result}[/{result_color}]", detail)
+    console.print(table)
+
+    if any(result == "fail" for _, result, _ in checks):
+        raise typer.Exit(1)
+
+
 # ---------------------------------------------------------------------------
 # Workouts — list
 # ---------------------------------------------------------------------------

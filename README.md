@@ -147,6 +147,7 @@ Auth:
 Workouts and profile:
 
 - `tp profile` - show user and athlete profile details
+- `tp doctor` - run auth and API connectivity checks
 - `tp workouts` - list workouts in a date range
 - `tp workout <id>` - show one workout
 - `tp create` - create a planned workout
