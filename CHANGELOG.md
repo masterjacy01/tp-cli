@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.4 - 2026-05-11
+
+- Expanded `tp workout --full` to include all high-value summary fields available from TrainingPeaks workout payloads: HR, power, cadence, speed/pace, elevation, temperature, tags, device source, source files, personal record counts, comments/notes when present, zones, and mean-max metrics.
+
 ## 0.1.3 - 2026-05-11
 
 - Fixed rich workout-detail parsing so `tp workout --full` shows actual time-in-zone durations and mean-max metrics from TrainingPeaks detail payloads.

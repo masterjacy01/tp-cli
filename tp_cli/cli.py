@@ -375,12 +375,42 @@ def workout(
         row("Distance (actual)", _fmt_distance(w.get("totalDistance") or 0))
         row("TSS (planned)", _fmt_num(w.get("tssPlanned")))
         row("TSS (actual)", _fmt_num(w.get("tssActual")))
+        row("IF (planned)", _fmt_num(w.get("ifPlanned"), decimals=2))
+        row("IF (actual)", _fmt_num(w.get("if"), decimals=2))
         row("Avg Power", _fmt_num(w.get("averagePower"), suffix=" W"))
+        row("Avg Power", _fmt_num(w.get("powerAverage"), suffix=" W"))
+        row("Max Power", _fmt_num(w.get("powerMaximum"), suffix=" W"))
         row("Norm Power", _fmt_num(w.get("normalizedPower"), suffix=" W"))
+        row("Norm Power", _fmt_num(w.get("normalizedPowerActual"), suffix=" W"))
         row("Avg HR", _fmt_num(w.get("averageHeartRate"), suffix=" bpm"))
+        row("Avg HR", _fmt_num(w.get("heartRateAverage"), suffix=" bpm"))
+        row("Min HR", _fmt_num(w.get("heartRateMinimum"), suffix=" bpm"))
         row("Max HR", _fmt_num(w.get("maxHeartRate"), suffix=" bpm"))
+        row("Max HR", _fmt_num(w.get("heartRateMaximum"), suffix=" bpm"))
+        row("Avg Cadence", _fmt_num(w.get("cadenceAverage"), suffix=" rpm"))
+        row("Max Cadence", _fmt_num(w.get("cadenceMaximum"), suffix=" rpm"))
+        row("Avg Speed", _fmt_speed(w.get("velocityAverage"), w.get("workoutTypeValueId")))
+        row("Max Speed", _fmt_speed(w.get("velocityMaximum"), w.get("workoutTypeValueId")))
+        row("Norm Speed", _fmt_speed(w.get("normalizedSpeedActual"), w.get("workoutTypeValueId")))
         row("Elevation", _fmt_num(w.get("totalElevationGain"), suffix=" m"))
+        row("Elevation gain", _fmt_num(w.get("elevationGain"), suffix=" m"))
+        row("Elevation loss", _fmt_num(w.get("elevationLoss"), suffix=" m"))
+        row("Elevation min", _fmt_num(w.get("elevationMinimum"), suffix=" m"))
+        row("Elevation avg", _fmt_num(w.get("elevationAverage"), suffix=" m"))
+        row("Elevation max", _fmt_num(w.get("elevationMaximum"), suffix=" m"))
         row("Calories", _fmt_num(w.get("calories"), suffix=" kcal"))
+        row("Energy", _fmt_num(w.get("energy"), decimals=1, suffix=" kJ"))
+        row("Temperature", _fmt_temperature(w))
+        row("RPE", _fmt_num(w.get("rpe")))
+        row("Feeling", _fmt_num(w.get("feeling")))
+        row("Duration compliance", _fmt_percent(w.get("complianceDurationPercent")))
+        row("Distance compliance", _fmt_percent(w.get("complianceDistancePercent")))
+        row("TSS compliance", _fmt_percent(w.get("complianceTssPercent")))
+        row("Tags", _fmt_tags(w.get("userTags")))
+        row("Device", _fmt_device(w.get("workoutDeviceSource")))
+        row("Personal records", _fmt_num(w.get("personalRecordCount")))
+        row("Last modified", w.get("lastModifiedDate"))
+        row("Source file", _fmt_device_files(details.get("workoutDeviceFileInfos") if details else None))
         _add_detail_rows(table, details)
 
     for label, key in [("Description", "description"), ("Coach notes", "coachComments"), ("Your notes", "athleteComments")]:
@@ -987,6 +1017,79 @@ def _fmt_num(val, decimals: int = 0, suffix: str = "") -> str:
         return f"{f:.{decimals}f}{suffix}" if decimals else f"{int(round(f))}{suffix}"
     except (TypeError, ValueError):
         return "-"
+
+
+def _fmt_percent(val) -> str:
+    if val is None:
+        return "-"
+    try:
+        return f"{float(val):.0f}%"
+    except (TypeError, ValueError):
+        return "-"
+
+
+def _fmt_speed(mps, sport_id=None) -> str:
+    if not mps:
+        return "-"
+    try:
+        speed = float(mps)
+    except (TypeError, ValueError):
+        return "-"
+    if int(sport_id or 0) == 3:
+        if speed <= 0:
+            return "-"
+        pace_s = round(1000 / speed)
+        m, s = divmod(pace_s, 60)
+        return f"{m}:{s:02d}/km"
+    return f"{speed * 3.6:.1f} km/h"
+
+
+def _fmt_temperature(w: dict) -> str:
+    vals = []
+    if w.get("tempMin") is not None:
+        vals.append(f"min {_fmt_num(w.get('tempMin'), decimals=1)}C")
+    if w.get("tempAvg") is not None:
+        vals.append(f"avg {_fmt_num(w.get('tempAvg'), decimals=1)}C")
+    if w.get("tempMax") is not None:
+        vals.append(f"max {_fmt_num(w.get('tempMax'), decimals=1)}C")
+    return ", ".join(vals) if vals else "-"
+
+
+def _fmt_tags(tags) -> str:
+    if not tags:
+        return "-"
+    if isinstance(tags, str):
+        return ", ".join(t for t in tags.split(",") if t)
+    if isinstance(tags, list):
+        return ", ".join(str(t) for t in tags if t)
+    return str(tags)
+
+
+def _fmt_device(device) -> str:
+    if not isinstance(device, dict):
+        return "-"
+    parts = [
+        device.get("normalizedUploadClient"),
+        device.get("deviceMake"),
+        device.get("deviceModel"),
+    ]
+    return " / ".join(str(p) for p in parts if p) or "-"
+
+
+def _fmt_device_files(files) -> str:
+    if not isinstance(files, list) or not files:
+        return "-"
+    parts = []
+    for f in files[:3]:
+        if not isinstance(f, dict):
+            continue
+        name = f.get("fileName") or f.get("fileId") or f.get("fileSystemId")
+        uploaded = f.get("dateUploaded")
+        if name and uploaded:
+            parts.append(f"{name} ({uploaded[:10]})")
+        elif name:
+            parts.append(str(name))
+    return "; ".join(parts) if parts else "-"
 
 
 def _tsb_label(tsb) -> str:
