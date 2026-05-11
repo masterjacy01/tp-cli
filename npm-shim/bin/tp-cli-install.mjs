@@ -25,9 +25,11 @@ if (has("pipx")) {
 }
 
 if (has("python3", ["-m", "pip", "--version"])) {
+  run("python3", ["-m", "pip", "uninstall", "-y", "tp-cli"]);
   const r = run("python3", ["-m", "pip", "install", "--upgrade", "--no-cache-dir", target]);
   if ((r.status ?? 1) !== 0) process.exit(r.status ?? 1);
 } else if (has("python", ["-m", "pip", "--version"])) {
+  run("python", ["-m", "pip", "uninstall", "-y", "tp-cli"]);
   const r = run("python", ["-m", "pip", "install", "--upgrade", "--no-cache-dir", target]);
   if ((r.status ?? 1) !== 0) process.exit(r.status ?? 1);
 } else {
