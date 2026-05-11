@@ -32,3 +32,10 @@ def test_workout_help_includes_full_flag():
 
     assert result.exit_code == 0
     assert "--full" in result.output
+
+
+def test_version_command():
+    result = CliRunner().invoke(app, ["version"])
+
+    assert result.exit_code == 0
+    assert "tp-cli 0.1.0" in result.output

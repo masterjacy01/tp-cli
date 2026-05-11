@@ -27,14 +27,26 @@ if (has("pipx")) {
 if (has("python3", ["-m", "pip", "--version"])) {
   const r = run("python3", ["-m", "pip", "install", target]);
   if ((r.status ?? 1) !== 0) process.exit(r.status ?? 1);
-  console.log("Installed. Verify with: tp --version");
+  console.log("\nInstalled tp-cli.");
+  console.log("Recommended first steps:");
+  console.log("  tp auth setup --browser chrome");
+  console.log("  tp doctor");
+  console.log("  tp workouts");
+  console.log("  tp workout <id> --full");
+  console.log("\nIf `tp` is not found, open a new shell session and try again.");
   process.exit(0);
 }
 
 if (has("python", ["-m", "pip", "--version"])) {
   const r = run("python", ["-m", "pip", "install", target]);
   if ((r.status ?? 1) !== 0) process.exit(r.status ?? 1);
-  console.log("Installed. Verify with: tp --version");
+  console.log("\nInstalled tp-cli.");
+  console.log("Recommended first steps:");
+  console.log("  tp auth setup --browser chrome");
+  console.log("  tp doctor");
+  console.log("  tp workouts");
+  console.log("  tp workout <id> --full");
+  console.log("\nIf `tp` is not found, open a new shell session and try again.");
   process.exit(0);
 }
 

@@ -58,6 +58,12 @@ def main(
     """Unofficial TrainingPeaks CLI."""
 
 
+@app.command("version")
+def version_cmd():
+    """Show installed tp-cli version."""
+    console.print(f"tp-cli {__version__}")
+
+
 # ---------------------------------------------------------------------------
 # Auth subcommands
 # ---------------------------------------------------------------------------
